@@ -43,7 +43,7 @@ function files_by_size(){
 			"\n\t\t\tif not provided"\
 			"\n\n\t@PARAMS:\tAll parameters are optional."\
 			"\n\t Param\t\t Description"\
-			"\n\t -----\t -----------"\
+			"\n\t -----\t\t -----------"\
 			"\n\t -h,--help\t This help message."\
 			"\n\t -r,--reverse\t Sort order is reversed."\
 			"\n\t -g,-G\t\t File sizes are Gigabytes."\
