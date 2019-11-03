@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+#	@USAGE:		files_by_size [DIRECTORY] [PARAMS] 
+#			Sort files in a directory at any depth. 
+#
+#	@DIRECTORY:	Directory defaults to current 
+#			if not provided 
+#
+#	@PARAMS:	All parameters are optional. 
+#	 Param	 Description 
+#	 -----	 ----------- 
+#	 -h,--help	 This help message. 
+#	 -r,--reverse	 Sort order is reversed. 
+#	 -g,-G		 File sizes are Gigabytes. 
+#	 -m,-M		 File sizes are Megabytes. 
+#	 -k,-K		 File sizes are Kilobytes. 
+#	 -q		 Quiet, no header. 
+#	 -#		 Recursion level, defaults to infinite. 
+#	 -s,-S		 Force sudo, not needed if directory 
+#			 is owned by root.
+#
+function files_by_size(){
+	local sortOpt="-n" dir="$(realpath . 2>/dev/null)" BS="M" quiet depth sudov help
+	if [ $# -gt 0 ]; then
+		local array=("$@") prm
+		for prm in "$@"; do 
+			case "${prm}" in
+				-h|--help) help=true;; 
+				-r|--reverse) sortOpt+="r";;
+				-[gG]|-[mM]|-[kK])	BS="${prm//-/}"
+							BS=$(echo "${BS}" | tr '[a-z]' '[A-Z]');;
+				-[qQ]) quiet=true;;
+				-[0-9]*) depth="${prm//-/}";;
+				-[sS]) sudov=true;;
+				*) [ -d "$(realpath "${prm}" 2>/dev/null)" ] && dir="$(realpath "${prm}" 2>/dev/null)";;
+			esac
+		done
+	fi
+	if [[ -n "${help}" ]]; then
+		echo -e "\n\t@USAGE:\t\tfiles_by_size [DIRECTORY] [PARAMS]"\
+			"\n\t\t\tSort files in a directory at any depth."\
+			"\n\n\t@DIRECTORY:\tDirectory defaults to current"\
+			"\n\t\t\tif not provided"\
+			"\n\n\t@PARAMS:\tAll parameters are optional."\
+			"\n\t Param\t Description"\
+			"\n\t -----\t -----------"\
+			"\n\t -h,--help\t This help message."\
+			"\n\t -r,--reverse\t Sort order is reversed."\
+			"\n\t -g,-G\t\t File sizes are Gigabytes."\
+			"\n\t -m,-M\t\t File sizes are Megabytes."\
+			"\n\t -k,-K\t\t File sizes are Kilobytes."\
+			"\n\t -q\t\t Quiet, no header."\
+			"\n\t -#\t\t Recursion level, defaults to infinite."\
+			"\n\t -s,-S\t\t Force sudo, not needed if directory"\
+			"\n\t\t\t is owned by root.\n"
+		return
+	fi
+	if [[ "$(stat -c '%U' "${dir}")" == "root" ]]; then
+		sudov=true
+	fi
+	if [[ -z "${quiet}" ]]; then
+		echo " Files sizes in ${BS}B's in ${dir}"
+	fi
+	if [[ -z "${depth}" ]]; then
+		if [[ -n "${sudov}" ]]; then
+			sudo find "${dir}" -type f -exec du --block-size=1"${BS}" {} \; | sort "${sortOpt}" 	
+		else
+			find "${dir}" -type f -exec du --block-size=1"${BS}" {} \; | sort "${sortOpt}" 	
+		fi
+	else
+		if [[ -n "${sudov}" ]]; then
+			sudo find "${dir}" -maxdepth "${depth}" -type f -exec du --block-size=1"${BS}" {} \; | sort "${sortOpt}" 	
+		else
+			find "${dir}" -maxdepth "${depth}" -type f -exec du --block-size=1"${BS}" {} \; | sort "${sortOpt}" 	
+		fi
+	fi
+}
