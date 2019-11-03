@@ -19,6 +19,8 @@ All should be available in most Linux distributions by default
 - Bash
 - stat
 - find
+- du
+- realpath
 
 ## Motivation
 
